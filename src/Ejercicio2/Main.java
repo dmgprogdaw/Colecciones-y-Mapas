@@ -4,78 +4,73 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.TreeMap;
-import java.util.Map.Entry;
 
-public class Main {	
-	static Map<String, Map<String, Integer>> usuarios = new TreeMap<String, Map<String, Integer>>(); 
+
+public class Main {
+	static Map<String, Map<Integer, List>> usuarios = new TreeMap<String, Map<Integer, List>>();
+	static List ips = new ArrayList();
 	private static String ruta = null;
-	private static int duracion;
+	static Scanner teclado = new Scanner(System.in);
 	
 	public static void leerFichero() throws IOException {
 		try {
 			FileReader fl = new FileReader(ruta);
 			BufferedReader b = new BufferedReader(fl);
+			Scanner comprobar = new Scanner(b);
+			String parte1, parte2;
+			int parte3;
 			String linea;
+			int numLineas = 0;
 			while((linea = b.readLine()) != null) {
-				String[] partes = linea.split(" ");
-				String parte1 = partes[0];
-				String parte2 = partes[1];
-				int parte3 = Integer.parseInt(partes[2]);
+				int duracion = 0;
+				String[] partes = linea.split(" ");				
+				parte1 = partes[0];
+				parte2 = partes[1];
+				parte3 = Integer.parseInt(partes[2]);
+				usuarios.put(parte2, new TreeMap<>());
 				if (usuarios.containsKey(parte2)) {
-					usuarios.get(parte2).put(parte1, parte3);
-					if (usuarios.get(parte2).containsKey(parte1)) {
-						usuarios.get(parte2).put(parte1, parte3);
-					}
-				}
-				else {
-					usuarios.put(parte2, new TreeMap<>());
-					usuarios.get(parte2).put(parte1, parte3);
-				}
+					ips.add(parte1);
+					duracion = duracion + parte3;
+					usuarios.get(parte2).put(duracion, ips);
+				}		
 			}
 			b.close();
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			System.out.println("La ruta no es valida");
 		}
 	}
 	
-	
 	public static void main(String[] args) throws IOException {
-		Scanner teclado = new Scanner(System.in);
 		System.out.print("Introduce la ruta: ");
-		try {
-			ruta = teclado.skip("[a-zA-Z]:/(\\w+/)*\\w*\\.*\\w+").match().group();
-			try {
-			leerFichero();
-		}catch(FileNotFoundException e) {
-			System.out.println("No se ha podido leer el archivo");
-		}
-		}catch(NoSuchElementException e) {
-			System.out.println("La ruta no es valida");
-		}		
+		ruta = teclado.skip("[a-zA-Z]:/(\\w+/)*\\w*\\.*\\w+").match().group();
+		
+		leerFichero();		
+	
 
-		Iterator<Map.Entry<String, Map<String, Integer>>> mapa = usuarios.entrySet().iterator();
+		Iterator<Map.Entry<String, Map<Integer, List>>> mapa = usuarios.entrySet().iterator();
 		while (mapa.hasNext()) {			
-			Map.Entry<String, Map<String, Integer>> entrada1 = mapa.next();		
+			Map.Entry<String, Map<Integer, List>> entrada1 = mapa.next();		
 			String nombreUsuario = entrada1.getKey();
 			System.out.print(nombreUsuario + ": ");
-			Iterator<Entry<String, Integer>> mapa2 = usuarios.get(nombreUsuario).entrySet().iterator();
+			
+			Iterator<Entry<Integer, List>> mapa2 = usuarios.get(nombreUsuario).entrySet().iterator();
 			while (mapa2.hasNext()) {
-				Map.Entry<String, Integer> ips = mapa2.next();
-				if(ips.getKey() == ips.getKey())
-					duracion = ips.getValue() + ips.getValue();
-				if (mapa2.hasNext()) {
-					System.out.print(duracion + " " + ips.getKey() + ", ");
-				}
-				else {
-					System.out.print(duracion + " " + ips.getKey());
-					System.out.println();
-				}
+				Map.Entry<Integer, List> entrada2 = mapa2.next();
+				
+				System.out.print(entrada2.getKey());
+				System.out.print(entrada2.getValue());
 			}
+			System.out.println();
 		}
 		
 	}
