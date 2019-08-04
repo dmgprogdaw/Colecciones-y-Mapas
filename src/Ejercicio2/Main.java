@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -24,31 +25,47 @@ public class Main {
 		try {
 			FileReader fl = new FileReader(ruta);
 			BufferedReader b = new BufferedReader(fl);
-			Scanner comprobar = new Scanner(b);
-			String linea;
+			String linea = null;
 			int duracionSesion, numLineas = 0, totalDuracion = 0;
 			while((linea = b.readLine()) != null) {
-				numLineas++;
-				String[] partes = linea.split(" ");
 				try {
+					numLineas++;
+					String[] partes = linea.split(" ");
 					duracionSesion = Integer.parseInt(partes[2]);
-					ips.add(partes[0]);
-					linea = comprobar.skip("(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\s*\\p{L}+\\s*\\d+").match().group();
-					usuarios.put(partes[1], new TreeMap<>());
-					if (usuarios.containsKey(partes[1])) {
-						totalDuracion = totalDuracion + duracionSesion;
-						usuarios.get(partes[1]).put(totalDuracion, ips);
+					Scanner comprobar = new Scanner(linea);
+					int estado = 0;	
+					while (estado != 2) {	
+						switch(estado) {
+							case 0:
+								try {
+									linea = comprobar.skip("(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\s*\\p{L}+\\s*\\d+").match().group();
+									estado = 1;
+								}catch(NoSuchElementException e) {
+									System.out.println("Hay un error en la linea " + numLineas);
+									estado = 2;
+								}
+								break;
+							case 1:		
+								ips.add(partes[0]);
+								usuarios.put(partes[1], new TreeMap<>());
+									if (usuarios.containsKey(partes[1])) {
+									totalDuracion = totalDuracion + duracionSesion;
+									usuarios.get(partes[1]).put(totalDuracion, ips);
+								}
+								else {
+									totalDuracion = totalDuracion + duracionSesion;
+									usuarios.get(partes[1]).put(totalDuracion, ips);
+								}
+								estado = 2;
+								break;
+						}
 					}
-					else {
-						totalDuracion = totalDuracion + duracionSesion;
-						usuarios.get(partes[1]).put(totalDuracion, ips);
-					}
+					comprobar.close();
 				}catch(NumberFormatException e) {
-					System.out.println("Hay un en la linea " + numLineas);
+					System.out.println("Hay un error en la linea " + numLineas);
 				}
 			}
 			b.close();
-			comprobar.close();
 		} catch (FileNotFoundException e) {
 			System.out.println("La ruta introducida no es valida.");
 		}
@@ -69,8 +86,7 @@ public class Main {
 			while (mapa2.hasNext()) {
 				Map.Entry<Integer, List<String>> entrada2 = mapa2.next();
 
-				System.out.print(entrada2.getKey() + " ");
-				System.out.print(entrada2.getValue());
+				System.out.print(entrada2.getKey() + " " + entrada2.getValue());
 			}
 			System.out.println();
 		}	
