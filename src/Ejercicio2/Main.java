@@ -5,33 +5,57 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.TreeMap;
-
+import java.util.TreeSet;
 
 public class Main {	
-	static Map<String, Map<Integer, List<String>>> usuarios = new TreeMap<String, Map<Integer, List<String>>>();
-	static List<String> ips = new ArrayList<>();
+	static Map<String, Main> usuarios = new TreeMap<String, Main>();
 	private static String ruta = null;
 	private static Scanner teclado = new Scanner(System.in);
+	private int duracion;
+    private Set<String> ips;
+	
+    public Main(String ip, int duracion) {
+        this.duracion = duracion;
+        this.ips = new TreeSet<String>();
 
+        this.ips.add(ip);
+    }
+
+    public void nuevaEntrada(String ip, int duracion) {
+        this.duracion += duracion;
+        if (!this.ips.contains(ip)) {
+            this.ips.add(ip);
+        }
+    }
+
+    public void imprimir() {
+        System.out.print(this.duracion);
+        System.out.print(" ");
+        System.out.print(ips);
+    }
+	
+	
 	public static void leerFichero() throws IOException {
 		try {
 			FileReader fl = new FileReader(ruta);
 			BufferedReader b = new BufferedReader(fl);
-			String linea = null;
-			int duracionSesion, numLineas = 0, totalDuracion = 0;
+			String linea = null, ip, usuario;
+			int duracionSesion, numLineas = 0;
 			while((linea = b.readLine()) != null) {
-				try {
-					numLineas++;
-					String[] partes = linea.split(" ");
-					duracionSesion = Integer.parseInt(partes[2]);
+				numLineas++;
+				String[] partes = linea.split(" ");
+				ip = partes[0];
+				usuario = partes[1];
+				duracionSesion = Integer.parseInt(partes[2]);
+				try {								
 					Scanner comprobar = new Scanner(linea);
 					int estado = 0;	
 					while (estado != 2) {	
@@ -45,19 +69,13 @@ public class Main {
 									estado = 2;
 								}
 								break;
-							case 1:		
-								ips.add(partes[0]);
-								usuarios.put(partes[1], new TreeMap<>());
-									if (usuarios.containsKey(partes[1])) {
-									totalDuracion = totalDuracion + duracionSesion;
-									usuarios.get(partes[1]).put(totalDuracion, ips);
-								}
-								else {
-									totalDuracion = totalDuracion + duracionSesion;
-									usuarios.get(partes[1]).put(totalDuracion, ips);
-								}
+							case 1:
+								if (usuarios.containsKey(usuario)) {
+			                        usuarios.get(usuario).nuevaEntrada(ip, duracionSesion);
+			                    } else {
+			                        usuarios.put(usuario, new Main(ip, duracionSesion));
+			                    }
 								estado = 2;
-								break;
 						}
 					}
 					comprobar.close();
@@ -76,18 +94,12 @@ public class Main {
 		ruta = teclado.skip("[a-zA-Z]:/(\\w+/)*\\w*\\.*\\w+").match().group();				
 		leerFichero();
 
-		Iterator<Map.Entry<String, Map<Integer, List<String>>>> mapa = usuarios.entrySet().iterator();
+		Iterator<Map.Entry<String, Main>> mapa = usuarios.entrySet().iterator();
 		while (mapa.hasNext()) {			
-			Map.Entry<String, Map<Integer, List<String>>> entrada1 = mapa.next();		
+			Map.Entry<String, Main> entrada1 = mapa.next();		
 			String nombreUsuario = entrada1.getKey();
 			System.out.print(nombreUsuario + ": ");
-
-			Iterator<Entry<Integer, List<String>>> mapa2 = usuarios.get(nombreUsuario).entrySet().iterator();
-			while (mapa2.hasNext()) {
-				Map.Entry<Integer, List<String>> entrada2 = mapa2.next();
-
-				System.out.print(entrada2.getKey() + " " + entrada2.getValue());
-			}
+			entrada1.getValue().imprimir();
 			System.out.println();
 		}	
 	}
